@@ -3,17 +3,21 @@ function Promise(executor){
     self.status = 'pending';//promise 状态
     self.value = undefined;// 成功有成功的值
     self.reason = undefined;// 失败有失败的原因
+    self.onResolvedCallbacks = [];
+    self.onRejectedCallbacks = [];
  
     function resolve(value){
         if(self.status === 'pending'){ //只有pending状态下才可以改变状态
             self.status = 'fulfilled';
             self.value = value;
+            self.onResolvedCallbacks.forEach(item => item(value));
         }
     }
     function reject(reson){
         if(self.status === 'pending'){//只有pending状态下才可以改变状态
             self.status = 'rejected';
             self.reason = reson;
+            self.onRejectedCallbacks.forEach(item => item(value));
         }
     }
     try{
@@ -24,18 +28,41 @@ function Promise(executor){
  }
  
  Promise.prototype.then = function(onFulfilled,onRejected){
-        if(this.status === 'fulfilled'){
+        const self = this;
+        if(self.status === 'fulfilled'){
             onFulfilled(this.value);
         }
-        if(this.status === 'rejected'){
+        if(self.status === 'rejected'){
             onRejected(this.reason);
         }
+        if (self.status == 'pending') {
+            self.onResolvedCallbacks.push(function (value) {
+                try {
+                    onFulfilled(value);
+                } catch (e) {
+                    reject(e);
+                }
+            });
+            self.onRejectedCallbacks.push(function (value) {
+                try {
+                    onRejected(value);
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
  }
+
+// const p = new Promise((resolve,reject)=>{
+//     resolve('成功') 
+//     // throw 1213
+//     // reject('失败')
+// });
  
- const p = new Promise((resolve,reject)=>{
-    resolve('成功') 
-    // throw 1213
-    // reject('失败')
+const p = new Promise((resolve,reject)=>{
+    setTimeout(()=>{
+        resolve('我是异步的成功')
+    })      
 });
 
 p.then(function(data){

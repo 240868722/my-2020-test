@@ -24,11 +24,12 @@ function Promise(executor){
  }
  
  Promise.prototype.then = function(onFulfilled,onRejected){
-        if(this.status === 'fulfilled'){
-            onFulfilled(this.value);
+        const self = this;
+        if(self.status === 'fulfilled'){
+            onFulfilled(self.value);
         }
-        if(this.status === 'rejected'){
-            onRejected(this.reason);
+        if(self.status === 'rejected'){
+            onRejected(self.reason);
         }
  }
  
